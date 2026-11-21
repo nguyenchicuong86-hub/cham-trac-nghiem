@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kiểm tra mẫu tọa độ</title>
+    <style>
+      body { max-width: 760px; margin: 36px auto; padding: 0 18px; color: #17233a; font: 15px/1.6 system-ui, sans-serif; }
+      li.pass { color: #14663b; } li.fail { color: #a32626; }
+    </style>
+  </head>
+  <body>
+    <h1>Kiểm tra mẫu phiếu</h1>
+    <p id="summary">Đang chạy…</p>
+    <ol id="results"></ol>
+    <script type="module">
+      import {
+        ANSWER_SHEET_TEMPLATE,
+        ANSWER_SHEET_TEMPLATES,
+        ESSAY_30_TEMPLATE,
+        MIXED_24_ESSAY_TEMPLATE,
+        getDigitGridRows,
+        getEssayLines,
+        getMultipleChoiceRows,
+        getTrueFalseRows,
+      } from "../src/templates.js";
+
+      const checks = [
+        ["Có thể chọn đủ ba mẫu phiếu", () => ANSWER_SHEET_TEMPLATES.length === 3],
+        ["Đủ 40 câu trắc nghiệm", () => getMultipleChoiceRows().length === 40],
+        ["Đủ 20 ý đúng/sai", () => getTrueFalseRows().length === 20],
+        ["Tọa độ ô trả lời nằm trong vùng quét", () => {
+          const area = ANSWER_SHEET_TEMPLATE.answerArea;
+          const maxX = area.x + area.width;
+          const maxY = area.y + area.height;
+          const radius = ANSWER_SHEET_TEMPLATE.multipleChoice.bubbleRadius;
+          const points = [
+            ...getMultipleChoiceRows().flatMap((row) => row.options),
+            ...getTrueFalseRows().flatMap((row) => row.choices),
+          ];
+          return points.every(({ x, y }) => x - radius > area.x && x + radius < maxX
+            && y - radius > area.y && y + radius < maxY);
+        }],
+        ["Bốn dấu định vị nằm đúng bốn góc vùng quét", () => {
+          const { anchors, anchorSize, answerArea: area } = ANSWER_SHEET_TEMPLATE;
+          const expected = [
+            [area.x, area.y],
+            [area.x + area.width - anchorSize, area.y],
+            [area.x, area.y + area.height - anchorSize],
+            [area.x + area.width - anchorSize, area.y + area.height - anchorSize],
+          ];
+          return anchors.length === 4 && anchors.every((point, index) =>
+            point.x === expected[index][0] && point.y === expected[index][1]);
+        }],
+        ["Mọi ô trả lời nằm ngoài vùng dấu định vị", () => {
+          const { anchors, anchorSize } = ANSWER_SHEET_TEMPLATE;
+          const radius = ANSWER_SHEET_TEMPLATE.multipleChoice.bubbleRadius;
+          const points = [
+            ...getMultipleChoiceRows().flatMap((row) => row.options),
+            ...getTrueFalseRows().flatMap((row) => row.choices),
+          ];
+          return points.every(({ x, y }) => anchors.every((anchor) =>
+            x + radius < anchor.x || x - radius > anchor.x + anchorSize
+            || y + radius < anchor.y || y - radius > anchor.y + anchorSize));
+        }],
+        ["Mẫu phiếu 120 có đúng 30 câu A–D", () => getMultipleChoiceRows(ESSAY_30_TEMPLATE).length === 30],
+        ["Lưới số báo danh có 8 cột và mã đề có 3 cột", () => {
+          const studentRows = getDigitGridRows(ESSAY_30_TEMPLATE.studentNumberGrid);
+          const examRows = getDigitGridRows(ESSAY_30_TEMPLATE.examCodeGrid);
+          return studentRows.length === 10 && studentRows.every((row) => row.bubbles.length === 8)
+            && examRows.length === 10 && examRows.every((row) => row.bubbles.length === 3);
+        }],
+        ["Có đủ 36 dòng tự luận trong khung", () => {
+          const lines = getEssayLines(ESSAY_30_TEMPLATE);
+          const essay = ESSAY_30_TEMPLATE.essay;
+          return lines.length === 36 && lines.every((y) => y > essay.y && y < essay.y + essay.height);
+        }],
+        ["Toàn bộ ô tô của mẫu 120 nằm trong khung trắc nghiệm", () => {
+          const { frame, bubbleRadius } = ESSAY_30_TEMPLATE.multipleChoice;
+          return getMultipleChoiceRows(ESSAY_30_TEMPLATE).every((row) =>
+            row.options.every(({ x, y }) =>
+              x - bubbleRadius > frame.x && x + bubbleRadius < frame.x + frame.width
+              && y - bubbleRadius > frame.y && y + bubbleRadius < frame.y + frame.height));
+        }],
+        ["Mẫu thứ ba có 24 câu A–D và 3 câu đúng/sai", () =>
+          getMultipleChoiceRows(MIXED_24_ESSAY_TEMPLATE).length === 24
+          && getTrueFalseRows(MIXED_24_ESSAY_TEMPLATE).length === 12],
+        ["Phần tự luận của mẫu thứ ba có 30 dòng trong khung", () => {
+          const lines = getEssayLines(MIXED_24_ESSAY_TEMPLATE);
+          const essay = MIXED_24_ESSAY_TEMPLATE.essay;
+          return lines.length === 30 && lines.every((y) => y > essay.y && y < essay.y + essay.height);
+        }],
+        ["Câu trắc nghiệm và đúng/sai không chạm vùng tự luận", () => {
+          const { essay, multipleChoice, trueFalse } = MIXED_24_ESSAY_TEMPLATE;
+          const mcPoints = getMultipleChoiceRows(MIXED_24_ESSAY_TEMPLATE).flatMap((row) => row.options);
+          const tfPoints = getTrueFalseRows(MIXED_24_ESSAY_TEMPLATE).flatMap((row) => row.choices);
+          return mcPoints.every(({ y }) => y + multipleChoice.bubbleRadius < essay.y)
+            && tfPoints.every(({ y }) => y + trueFalse.bubbleRadius < essay.y);
+        }],
+      ];
+
+      const list = document.querySelector("#results");
+      const failures = [];
+      for (const [label, check] of checks) {
+        let passed = false;
+        try { passed = check(); } catch { passed = false; }
+        const item = document.createElement("li");
+        item.className = passed ? "pass" : "fail";
+        item.textContent = `${passed ? "ĐẠT" : "LỖI"} — ${label}`;
+        list.append(item);
+        if (!passed) failures.push(label);
+      }
+      document.querySelector("#summary").textContent = failures.length
+        ? `${failures.length}/${checks.length} kiểm tra thất bại.`
+        : `Đạt cả ${checks.length} kiểm tra.`;
+      document.title = failures.length ? "Kiểm tra thất bại" : "Kiểm tra đạt";
+    </script>
+  </body>
+</html>

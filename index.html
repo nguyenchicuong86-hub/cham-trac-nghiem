@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Tạo phiếu trả lời trắc nghiệm</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.js" defer></script>
+    <script type="module" src="src/main.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="page-heading">
+        <div>
+          <p class="eyebrow">PHIẾU CHẤM · MẪU A4</p>
+          <h1>Tạo phiếu trả lời</h1>
+          <p class="intro">Chọn mẫu phiếu, tùy chỉnh thông tin và xuất PDF khổ A4.</p>
+        </div>
+        <button class="primary-button" id="export-button" type="button">
+          <span aria-hidden="true">↓</span> Tải PDF
+        </button>
+      </header>
+
+      <div class="workspace">
+        <section class="panel settings-panel" aria-labelledby="settings-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">THÔNG TIN PHIẾU</p>
+              <h2 id="settings-title">Tùy chỉnh tiêu đề</h2>
+            </div>
+            <span class="template-badge" id="template-badge">A4 · Cố định</span>
+          </div>
+
+          <fieldset class="template-picker" id="template-picker">
+            <legend>Chọn mẫu phiếu chấm</legend>
+            <label class="template-choice">
+              <input type="radio" name="templateId" value="omr-mixed-a4-v1" checked>
+              <span>
+                <strong>40 trắc nghiệm + đúng/sai</strong>
+                <small>A4 · 40 câu A–D và 20 ý đúng/sai</small>
+              </span>
+            </label>
+            <label class="template-choice">
+              <input type="radio" name="templateId" value="omr-30-essay-a4-v1">
+              <span>
+                <strong>30 câu trắc nghiệm + tự luận</strong>
+                <small>Mẫu phiếu 120 · Khổ A4</small>
+              </span>
+            </label>
+            <label class="template-choice">
+              <input type="radio" name="templateId" value="omr-24-mixed-essay-a4-v1">
+              <span>
+                <strong>24 trắc nghiệm + đúng/sai + tự luận</strong>
+                <small>A4 · 3 câu đúng/sai · Có QR nhận diện</small>
+              </span>
+            </label>
+          </fieldset>
+
+          <form id="sheet-form">
+            <label>
+              Tên trường / đơn vị
+              <input name="schoolName" maxlength="42" value="TRƯỜNG TRUNG HỌC">
+            </label>
+            <label>
+              Tên kỳ thi
+              <input name="examTitle" maxlength="46" value="PHIẾU TRẢ LỜI TRẮC NGHIỆM">
+            </label>
+            <div class="field-row" id="exam-fields">
+              <label>
+                Môn thi
+                <input name="subject" maxlength="28" value="Toán">
+              </label>
+              <label id="exam-code-field">
+                Mã đề
+                <input name="examCode" maxlength="12" value="001">
+              </label>
+            </div>
+            <p class="field-note" id="field-note">Tên học sinh và lớp được để trống để điền sau khi in.</p>
+          </form>
+
+          <div class="template-summary">
+            <h3>Cấu trúc phiếu</h3>
+            <div id="template-summary-rows"></div>
+            <div id="sheet-id-row"><span>Mã phiếu</span><strong id="sheet-id-label"></strong></div>
+          </div>
+          <p class="privacy-note" id="template-note">QR chỉ chứa mã phiếu và mã đề, không chứa đáp án.</p>
+        </section>
+
+        <section class="panel preview-panel" aria-labelledby="preview-title">
+          <div class="panel-heading preview-heading">
+            <div>
+              <p class="eyebrow">BẢN XEM TRƯỚC</p>
+              <h2 id="preview-title">Phiếu trắc nghiệm hỗn hợp A4</h2>
+            </div>
+            <span class="preview-hint">Các vùng tô và dấu định vị là cố định</span>
+          </div>
+          <div class="paper-frame">
+            <svg id="sheet-preview" class="sheet-preview" viewBox="0 0 210 297"
+                 role="img" aria-label="Bản xem trước phiếu trả lời trắc nghiệm khổ A4"></svg>
+          </div>
+        </section>
+      </div>
+
+      <p class="page-footer" id="page-footer">Mẫu tọa độ dùng chung cho bước quét sau này. Không thay đổi vị trí ô trả lời hoặc dấu định vị.</p>
+      <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+    </main>
+  </body>
+</html>
