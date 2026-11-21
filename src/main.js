@@ -7,6 +7,7 @@ import {
   ANSWER_SHEET_TEMPLATES,
   ANSWER_SHEET_TEMPLATE,
 } from "./templates.js";
+import "./grading-ui.js";
 
 const form = document.querySelector("#sheet-form");
 const preview = document.querySelector("#sheet-preview");

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
     <script type="module" src="src/main.js"></script>
   </head>
   <body>
@@ -102,6 +103,90 @@
           </div>
         </section>
       </div>
+
+      <section class="panel grading-panel" aria-labelledby="grading-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">CHẤM BÀI</p>
+            <h2 id="grading-title">Đáp án chuẩn và quét phiếu</h2>
+          </div>
+          <span class="template-badge">Lưu trên thiết bị này</span>
+        </div>
+        <p class="grading-intro">Nhập đáp án chuẩn một lần, sau đó tải ảnh hoặc chụp phiếu để nhận diện ô tô. Điểm tự luận do giáo viên nhập thủ công.</p>
+
+        <div class="grading-workspace">
+          <section class="grading-card" aria-labelledby="key-title">
+            <h3 id="key-title">1. Thiết lập đáp án chuẩn</h3>
+            <div class="grading-fields">
+              <label>
+                Mẫu phiếu
+                <select id="key-template-select"></select>
+              </label>
+              <label>
+                Mã đề
+                <input id="key-exam-code" maxlength="12" value="001">
+              </label>
+            </div>
+            <div class="points-fields">
+              <label>Điểm / câu trắc nghiệm<input id="mc-points" type="number" min="0" max="100" step="0.05" value="1"></label>
+              <label>Điểm / ý đúng-sai<input id="tf-points" type="number" min="0" max="100" step="0.05" value="1"></label>
+              <label>Điểm tự luận tối đa<input id="essay-points" type="number" min="0" max="100" step="0.1" value="0"></label>
+            </div>
+            <div id="answer-fields" class="answer-fields"></div>
+            <button id="save-answer-key" class="secondary-button" type="button">Lưu đáp án chuẩn</button>
+            <div class="saved-keys">
+              <h4>Đáp án đã lưu</h4>
+              <ul id="saved-key-list"></ul>
+              <div class="backup-controls">
+                <button id="export-answer-keys" class="secondary-button" type="button" disabled>Tải sao lưu đáp án</button>
+                <label class="backup-import">
+                  Nhập tệp sao lưu
+                  <input id="import-answer-keys" type="file" accept="application/json,.json">
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section class="grading-card" aria-labelledby="scan-title">
+            <h3 id="scan-title">2. Chụp hoặc tải ảnh phiếu</h3>
+            <label>
+              Đáp án dùng để chấm
+              <select id="grading-key-select" required></select>
+            </label>
+            <label>
+              Số báo danh / tên thí sinh (nếu cần)
+              <input id="candidate-id" maxlength="40" placeholder="Tự đọc từ phiếu mẫu 120 nếu tô rõ">
+            </label>
+            <label class="upload-control">
+              Tải ảnh hoặc chụp phiếu
+              <input id="scan-file" type="file" accept="image/*" capture="environment">
+            </label>
+            <div class="camera-controls">
+              <button id="start-camera" class="secondary-button" type="button">Mở camera</button>
+              <button id="capture-photo" class="secondary-button" type="button" disabled>Chụp ảnh</button>
+              <button id="stop-camera" class="secondary-button quiet-button" type="button" disabled>Tắt camera</button>
+            </div>
+            <video id="camera-preview" class="camera-preview" playsinline hidden></video>
+            <canvas id="scan-canvas" class="scan-canvas" hidden></canvas>
+            <div id="scan-preview-wrap" class="scan-preview-wrap" hidden>
+              <img id="scan-preview" alt="Ảnh phiếu được chọn">
+            </div>
+            <label id="essay-score-field" hidden>
+              Điểm tự luận của bài này
+              <input id="essay-score" type="number" min="0" max="100" step="0.1" value="0">
+            </label>
+            <button id="grade-button" class="primary-button grade-button" type="button" disabled>Quét và chấm bài</button>
+            <div id="grading-result" class="grading-result" role="status" aria-live="polite"></div>
+            <button id="download-results" class="secondary-button" type="button" hidden>Tải kết quả CSV</button>
+            <div class="saved-keys grading-history-wrap">
+              <h4>Lịch sử chấm gần đây</h4>
+              <ul id="grading-history"></ul>
+              <button id="download-history" class="secondary-button" type="button" hidden>Tải toàn bộ lịch sử CSV</button>
+            </div>
+          </section>
+        </div>
+        <p class="privacy-note">Đáp án và lịch sử chấm lưu trong bộ nhớ trình duyệt, không tải lên máy chủ. Hãy sao lưu hoặc xuất kết quả trước khi xóa dữ liệu trình duyệt.</p>
+      </section>
 
       <p class="page-footer" id="page-footer">Mẫu tọa độ dùng chung cho bước quét sau này. Không thay đổi vị trí ô trả lời hoặc dấu định vị.</p>
       <div id="status-message" class="status-message" role="status" aria-live="polite"></div>

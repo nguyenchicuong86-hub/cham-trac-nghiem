@@ -10,10 +10,16 @@
 
 Chọn mẫu ở mục **Chọn mẫu phiếu chấm**, điền thông tin tiêu đề rồi nhấn **Tải PDF**. Tọa độ mẫu được định nghĩa tập trung trong `src/templates.js` và dùng chung cho bản xem trước, PDF và các bước quét tiếp theo.
 
+## Nhập đáp án và chấm phiếu
+
+Trong mục **Chấm bài**, chọn mẫu/mã đề, nhập đáp án chuẩn cho từng câu và lưu. Chọn đáp án đã lưu, sau đó tải ảnh phiếu hoặc mở camera. Ảnh được căn chỉnh theo bốn dấu định vị; ô tô được nhận diện theo tọa độ mẫu. Mẫu có QR được dùng để kiểm tra mã đề, còn số báo danh của mẫu phiếu 120 được đọc từ lưới tô. Điểm tự luận nhập thủ công. Có thể tải kết quả mới nhất hoặc toàn bộ lịch sử chấm dạng CSV. Dùng **Tải sao lưu đáp án** để lưu tệp JSON và **Nhập tệp sao lưu** để khôi phục đáp án trên trình duyệt/thiết bị khác.
+
+Đáp án và lịch sử chấm lưu trong `localStorage` của trình duyệt hiện tại; ứng dụng chưa đồng bộ kết quả giữa thiết bị. Tệp sao lưu chỉ chứa đáp án chuẩn, không chứa lịch sử chấm. Chụp đủ bốn dấu định vị, phiếu đúng chiều và đủ sáng; luôn kiểm tra các ô bỏ trống/tô nhiều ô với bản giấy trước khi xác nhận điểm.
+
 ## Chạy cục bộ
 
 Phục vụ thư mục này bằng một máy chủ web tĩnh, sau đó mở địa chỉ máy chủ trên trình duyệt. Các thư viện PDF, QR và phông tiếng Việt được tải từ CDN.
 
 ## Kiểm tra cấu hình phiếu
 
-Mở `tests/templates.test.html` qua máy chủ web để kiểm tra số câu, vùng tô, dấu định vị và các dòng tự luận của ba mẫu.
+Mở `tests/templates.test.html` để kiểm tra cấu hình mẫu; mở `tests/grading.test.html` để kiểm tra căn chỉnh ảnh và tính điểm.

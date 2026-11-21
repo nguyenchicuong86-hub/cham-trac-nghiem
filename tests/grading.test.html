@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kiểm tra chấm phiếu</title>
+    <style>
+      body { max-width: 760px; margin: 36px auto; padding: 0 18px; color: #17233a; font: 15px/1.6 system-ui, sans-serif; }
+      li.pass { color: #14663b; } li.fail { color: #a32626; }
+    </style>
+  </head>
+  <body>
+    <h1>Kiểm tra chấm phiếu</h1>
+    <p id="summary">Đang chạy…</p>
+    <ol id="results"></ol>
+    <script type="module">
+      import {
+        ANSWER_SHEET_TEMPLATE,
+        ESSAY_30_TEMPLATE,
+        MIXED_24_ESSAY_TEMPLATE,
+        getDigitGridRows,
+        getMultipleChoiceRows,
+        getTrueFalseRows,
+      } from "../src/templates.js";
+      import {
+        createEmptyAnswerKey,
+        gradeAnswers,
+        loadAnswerKeys,
+        loadGradingResults,
+        saveAnswerKey,
+        saveAnswerKeys,
+        saveGradingResult,
+        scanAnswerImage,
+        solveHomography,
+        transformPoint,
+      } from "../src/grading.js";
+
+      const checks = [];
+      function createMemoryStorage() {
+        const values = new Map();
+        return {
+          getItem: (key) => values.get(key) || null,
+          setItem: (key, value) => values.set(key, value),
+        };
+      }
+
+      checks.push(["Lưu và nạp đáp án chuẩn từ bộ nhớ cục bộ", () => {
+        const storage = createMemoryStorage();
+        const key = createEmptyAnswerKey(ANSWER_SHEET_TEMPLATE, "001");
+        key.multipleChoice.fill("A");
+        key.trueFalse.fill("Đ");
+        saveAnswerKey(key, storage);
+        const saved = loadAnswerKeys(storage);
+        return saved.length === 1 && saved[0].multipleChoice.length === 40;
+      }]);
+
+      checks.push(["Từ chối tệp sao lưu sai cấu trúc mà không ghi một phần", () => {
+        const storage = createMemoryStorage();
+        const key = createEmptyAnswerKey(ANSWER_SHEET_TEMPLATE, "001");
+        key.multipleChoice.fill("A");
+        key.trueFalse.fill("Đ");
+        saveAnswerKey(key, storage);
+        const before = storage.getItem("omr.answer-keys.v1");
+        let rejected = false;
+        try {
+          saveAnswerKeys([{ ...key, multipleChoice: ["X"] }], storage);
+        } catch {
+          rejected = true;
+        }
+        return rejected && storage.getItem("omr.answer-keys.v1") === before;
+      }]);
+
+      checks.push(["Lưu và nạp lịch sử kết quả chấm", () => {
+        const storage = createMemoryStorage();
+        const saved = saveGradingResult({ score: 8, examCode: "001" }, storage);
+        const results = loadGradingResults(storage);
+        return results.length === 1 && results[0].id === saved.id;
+      }]);
+
+      const source = [{ x: 0, y: 0 }, { x: 210, y: 0 }, { x: 0, y: 297 }, { x: 210, y: 297 }];
+      const destination = [{ x: 40, y: 25 }, { x: 770, y: 52 }, { x: 55, y: 1090 }, { x: 785, y: 1120 }];
+      const homography = solveHomography(source, destination);
+      const projected = transformPoint(homography, { x: 87, y: 162 });
+      checks.push(["Căn chỉnh phối cảnh khôi phục điểm đã biết", () => {
+        const inverse = solveHomography(destination, source);
+        const restored = transformPoint(inverse, projected);
+        return Math.abs(restored.x - 87) < 0.001 && Math.abs(restored.y - 162) < 0.001;
+      }]);
+
+      const width = 840;
+      const height = 1188;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, width, height);
+      const template = ANSWER_SHEET_TEMPLATE;
+      const mapPoint = (point) => ({
+        x: 45 + point.x * 3.4 + point.y * 0.025,
+        y: 35 + point.x * 0.018 + point.y * 3.7,
+      });
+      context.fillStyle = "#000";
+      for (const anchor of template.anchors) {
+        const center = mapPoint({ x: anchor.x + template.anchorSize / 2, y: anchor.y + template.anchorSize / 2 });
+        context.fillRect(center.x - 11, center.y - 11, 22, 22);
+      }
+      function fillBubble(point, markRadius = 4) {
+        const center = mapPoint(point);
+        context.beginPath();
+        context.arc(center.x, center.y, markRadius, 0, Math.PI * 2);
+        context.fill();
+      }
+      const mcRows = getMultipleChoiceRows(template);
+      const tfRows = getTrueFalseRows(template);
+      fillBubble(mcRows[0].options[0]);
+      fillBubble(mcRows[1].options[1]);
+      fillBubble(tfRows[0].choices[0]);
+      const imageData = context.getImageData(0, 0, width, height);
+      let scan;
+      try {
+        scan = scanAnswerImage(imageData, template);
+        checks.push(["Nhận diện bốn dấu định vị trên ảnh", () => scan.anchors.length === 4]);
+        checks.push(["Đọc được các ô tô trắc nghiệm và đúng/sai", () =>
+          scan.multipleChoice[0].answer === "A"
+          && scan.multipleChoice[1].answer === "B"
+          && scan.trueFalse[0].answer === "Đ"]);
+        checks.push(["Phân biệt câu để trống", () => scan.multipleChoice[2].issue === "blank"]);
+        const key = {
+          id: "test",
+          templateId: template.id,
+          examCode: "001",
+          multipleChoice: Array.from({ length: template.multipleChoice.count }, () => ""),
+          trueFalse: Array.from({ length: 20 }, () => ""),
+          points: { multipleChoice: 0.25, trueFalse: 0.25, essay: 0 },
+        };
+        key.multipleChoice[0] = "A";
+        key.multipleChoice[1] = "B";
+        key.trueFalse[0] = "Đ";
+        const result = gradeAnswers(scan, key);
+        checks.push(["Tính đúng điểm khách quan và điểm tối đa", () =>
+          result.mcCorrect === 2 && result.tfCorrect === 1
+          && result.score === 0.75 && result.maximumScore === 15]);
+      } catch (error) {
+        checks.push(["Quét ảnh phiếu mẫu", () => { throw error; }]);
+      }
+
+      checks.push(["Hỗ trợ phiếu 120 không có phần đúng/sai", () => {
+        const key = {
+          id: "essay",
+          templateId: ESSAY_30_TEMPLATE.id,
+          examCode: "120",
+          multipleChoice: Array.from({ length: 30 }, () => "A"),
+          trueFalse: [],
+          points: { multipleChoice: 1, trueFalse: 0, essay: 10 },
+        };
+        return gradeAnswers({
+          templateId: ESSAY_30_TEMPLATE.id,
+          multipleChoice: Array.from({ length: 30 }, () => ({ answer: "A", issue: "" })),
+          trueFalse: [],
+        }, key, 7).score === 37;
+      }]);
+
+      function syntheticScan(template, marks, digits = null) {
+        const testCanvas = document.createElement("canvas");
+        testCanvas.width = width;
+        testCanvas.height = height;
+        const testContext = testCanvas.getContext("2d", { willReadFrequently: true });
+        testContext.fillStyle = "#fff";
+        testContext.fillRect(0, 0, width, height);
+        testContext.fillStyle = "#000";
+        for (const anchor of template.anchors) {
+          testContext.fillRect(anchor.x * 4, anchor.y * 4, template.anchorSize * 4, template.anchorSize * 4);
+        }
+        for (const point of marks) {
+          testContext.beginPath();
+          testContext.arc(point.x * 4, point.y * 4, 4, 0, Math.PI * 2);
+          testContext.fill();
+        }
+        if (digits) {
+          for (const [grid, value] of digits) {
+            const rows = getDigitGridRows(grid);
+            for (let column = 0; column < value.length; column += 1) {
+              const row = rows[Number(value[column])];
+              testContext.beginPath();
+              testContext.arc(
+                (grid.firstX + column * grid.columnPitch) * 4,
+                row.y * 4,
+                3,
+                0,
+                Math.PI * 2,
+              );
+              testContext.fill();
+            }
+          }
+        }
+        return scanAnswerImage(testContext.getImageData(0, 0, width, height), template);
+      }
+
+      checks.push(["Quét được mẫu 24 câu có trắc nghiệm và đúng/sai", () => {
+        const rows = getMultipleChoiceRows(MIXED_24_ESSAY_TEMPLATE);
+        const tf = getTrueFalseRows(MIXED_24_ESSAY_TEMPLATE);
+        const result = syntheticScan(MIXED_24_ESSAY_TEMPLATE, [rows[0].options[2], tf[0].choices[1]]);
+        return result.multipleChoice[0].answer === "C" && result.trueFalse[0].answer === "S";
+      }]);
+      checks.push(["Quét được mẫu 120 và số báo danh đã tô", () => {
+        const rows = getMultipleChoiceRows(ESSAY_30_TEMPLATE);
+        const result = syntheticScan(ESSAY_30_TEMPLATE, [rows[0].options[0]], [
+          [ESSAY_30_TEMPLATE.studentNumberGrid, "12345678"],
+          [ESSAY_30_TEMPLATE.examCodeGrid, "120"],
+        ]);
+        return result.multipleChoice[0].answer === "A"
+          && result.candidateNumber === "12345678"
+          && result.examCode === "120";
+      }]);
+
+      const list = document.querySelector("#results");
+      const failures = [];
+      for (const [label, check] of checks) {
+        let passed = false;
+        try { passed = check(); } catch { passed = false; }
+        const item = document.createElement("li");
+        item.className = passed ? "pass" : "fail";
+        item.textContent = `${passed ? "ĐẠT" : "LỖI"} — ${label}`;
+        list.append(item);
+        if (!passed) failures.push(label);
+      }
+      document.querySelector("#summary").textContent = failures.length
+        ? `${failures.length}/${checks.length} kiểm tra thất bại.`
+        : `Đạt cả ${checks.length} kiểm tra.`;
+      document.title = failures.length ? "Kiểm tra thất bại" : "Kiểm tra đạt";
+    </script>
+  </body>
+</html>
