@@ -34,4 +34,4 @@ Mở `tests/templates.test.html` để kiểm tra cấu hình mẫu; mở `tests
 
 ## Codespaces
 
-`.devcontainer/devcontainer.json` yêu cầu Codespace 2 CPU, 8 GB RAM và 32 GB dung lượng. Thời gian chờ tự tắt 10–15 phút và hạn mức miễn phí theo tài khoản cần đặt/kiểm tra trong GitHub **Settings → Codespaces** và **Billing and licensing**.
+`.devcontainer/devcontainer.json` yêu cầu Codespace 2 CPU và 8 GB RAM. Thời gian chờ tự tắt 10–15 phút và hạn mức miễn phí/dung lượng theo tài khoản cần đặt hoặc kiểm tra trong GitHub **Settings → Codespaces** và **Billing and licensing**.
