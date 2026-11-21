@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kiểm tra nhúng ứng dụng</title>
+    <style>
+      body { margin: 20px; font: 15px/1.5 system-ui, sans-serif; }
+      iframe { display: block; width: 100%; min-height: 500px; border: 1px solid #ccd5e5; }
+      #result { color: #17613a; }
+      #result.fail { color: #a32626; }
+    </style>
+  </head>
+  <body>
+    <h1>Kiểm tra nhúng ứng dụng</h1>
+    <p id="result">Đang chờ ứng dụng báo chiều cao…</p>
+    <iframe id="app" src="../?embed=1" title="Ứng dụng chấm phiếu" allow="camera; clipboard-write"></iframe>
+    <script>
+      const frame = document.querySelector("#app");
+      const result = document.querySelector("#result");
+      const timeout = setTimeout(() => {
+        result.className = "fail";
+        result.textContent = "Không nhận được thông báo chiều cao từ ứng dụng.";
+      }, 10000);
+      window.addEventListener("message", (event) => {
+        if (event.origin !== location.origin || event.source !== frame.contentWindow
+          || event.data?.type !== "cham-trac-nghiem:resize") return;
+        clearTimeout(timeout);
+        const height = Number(event.data.height);
+        const passed = Number.isFinite(height) && height >= 400;
+        result.className = passed ? "" : "fail";
+        result.textContent = passed
+          ? `Đạt — iframe tự điều chỉnh chiều cao thành ${height}px.`
+          : "Lỗi — chiều cao iframe không hợp lệ.";
+        if (passed) frame.style.height = `${height}px`;
+      });
+    </script>
+  </body>
+</html>

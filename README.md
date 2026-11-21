@@ -24,13 +24,45 @@ Trong mục **Chấm bài**, chọn mẫu/mã đề, nhập đáp án chuẩn ch
 
 APK và EXE được tạo bằng GitHub Actions khi cập nhật `main`. Tải hai artifact **android-apk** và **windows-installer** từ lần chạy mới nhất trong tab Actions. Ứng dụng đã cài dùng dữ liệu cục bộ như bản web; cần Internet để tải các thư viện PDF/QR từ CDN.
 
+## Nhúng vào trang PythonAnywhere
+
+Ứng dụng có chế độ nhúng `?embed=1`, tự gửi chiều cao nội dung cho trang cha để iframe tự co giãn. Chèn đoạn sau vào template HTML/Jinja tại vị trí muốn hiển thị công cụ. Trang PythonAnywhere hiện không gửi header chặn iframe; GitHub Pages cũng cho phép nhúng.
+
+```html
+<iframe
+  id="omr-app-frame"
+  src="https://nguyenchicuong86-hub.github.io/cham-trac-nghiem/?embed=1"
+  title="Tạo và chấm phiếu trắc nghiệm"
+  style="display:block;width:100%;height:900px;border:0"
+  loading="lazy"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allow="camera; clipboard-write"
+></iframe>
+<script>
+  (() => {
+    const frame = document.getElementById("omr-app-frame");
+    window.addEventListener("message", (event) => {
+      if (event.origin !== "https://nguyenchicuong86-hub.github.io"
+        || event.source !== frame.contentWindow
+        || event.data?.type !== "cham-trac-nghiem:resize") return;
+      const height = Number(event.data.height);
+      if (Number.isFinite(height) && height >= 400 && height <= 20000) {
+        frame.style.height = `${height}px`;
+      }
+    });
+  })();
+</script>
+```
+
+Đoạn mã trên chỉ tạo phần nhúng; chưa thay đổi trang PythonAnywhere vì mã nguồn/đăng nhập của trang đó không nằm trong thư mục dự án này. Đáp án và lịch sử vẫn lưu theo trình duyệt, không tự chuyển qua lại giữa hai tên miền.
+
 ## Chạy cục bộ
 
 Phục vụ thư mục này bằng một máy chủ web tĩnh, sau đó mở địa chỉ máy chủ trên trình duyệt. Các thư viện PDF, QR và phông tiếng Việt được tải từ CDN.
 
 ## Kiểm tra cấu hình phiếu
 
-Mở `tests/templates.test.html` để kiểm tra cấu hình mẫu; mở `tests/grading.test.html` để kiểm tra căn chỉnh ảnh và tính điểm.
+Mở `tests/templates.test.html` để kiểm tra cấu hình mẫu; mở `tests/grading.test.html` để kiểm tra căn chỉnh ảnh và tính điểm; mở `tests/embed.test.html` để kiểm tra chế độ nhúng và tự co giãn chiều cao iframe.
 
 ## Codespaces
 

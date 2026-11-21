@@ -19,6 +19,30 @@ const examFields = document.querySelector("#exam-fields");
 const sheetId = createSheetId();
 let activeTemplate = ANSWER_SHEET_TEMPLATE;
 let installPrompt;
+const embeddedMode = new URLSearchParams(location.search).get("embed") === "1";
+if (embeddedMode) document.body.classList.add("embedded-app");
+
+if (embeddedMode && window.parent !== window) {
+  let lastReportedHeight = 0;
+  const parentOrigin = (() => {
+    try {
+      return new URL(document.referrer).origin;
+    } catch {
+      return "*";
+    }
+  })();
+  const reportEmbedHeight = () => {
+    const height = Math.ceil(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight));
+    if (height === lastReportedHeight) return;
+    lastReportedHeight = height;
+    window.parent.postMessage({ type: "cham-trac-nghiem:resize", height }, parentOrigin);
+  };
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(reportEmbedHeight).observe(document.documentElement);
+  }
+  window.addEventListener("load", reportEmbedHeight, { once: true });
+  window.addEventListener("resize", reportEmbedHeight);
+}
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
