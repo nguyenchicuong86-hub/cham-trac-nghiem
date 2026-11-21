@@ -6,7 +6,7 @@
   "description": "Ứng dụng tạo và chấm phiếu trắc nghiệm",
   "scripts": {
     "build:web": "node scripts/copy-web-assets.mjs",
-    "dist:windows": "npm run build:web && electron-builder --win nsis"
+    "dist:windows": "npm run build:web && electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "@capacitor/android": "7.4.3",
