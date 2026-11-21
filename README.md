@@ -16,6 +16,14 @@ Trong mục **Chấm bài**, chọn mẫu/mã đề, nhập đáp án chuẩn ch
 
 Đáp án và lịch sử chấm lưu trong `localStorage` của trình duyệt hiện tại; ứng dụng chưa đồng bộ kết quả giữa thiết bị. Tệp sao lưu chỉ chứa đáp án chuẩn, không chứa lịch sử chấm. Chụp đủ bốn dấu định vị, phiếu đúng chiều và đủ sáng; luôn kiểm tra các ô bỏ trống/tô nhiều ô với bản giấy trước khi xác nhận điểm.
 
+## Cài đặt ứng dụng
+
+- **Android:** mở ứng dụng trong Chrome để cài PWA, hoặc tải APK từ GitHub Actions để cài bản Android độc lập. APK debug phù hợp thử nghiệm/cài riêng, không dùng để đưa lên Play Store.
+- **iPhone/iPad:** mở trang GitHub Pages trong Safari, chọn **Chia sẻ → Thêm vào màn hình chính**. Đây là PWA; hiện chưa có IPA ký bằng chứng chỉ Apple hoặc bản trên App Store.
+- **Windows:** workflow **Build installers** tạo bộ cài `Cham-Trac-Nghiem-Setup-1.0.0.exe` cho Windows x64.
+
+APK và EXE được tạo bằng GitHub Actions khi cập nhật `main`. Tải hai artifact **android-apk** và **windows-installer** từ lần chạy mới nhất trong tab Actions. Ứng dụng đã cài dùng dữ liệu cục bộ như bản web; cần Internet để tải các thư viện PDF/QR từ CDN.
+
 ## Chạy cục bộ
 
 Phục vụ thư mục này bằng một máy chủ web tĩnh, sau đó mở địa chỉ máy chủ trên trình duyệt. Các thư viện PDF, QR và phông tiếng Việt được tải từ CDN.
@@ -23,3 +31,7 @@ Phục vụ thư mục này bằng một máy chủ web tĩnh, sau đó mở đ�
 ## Kiểm tra cấu hình phiếu
 
 Mở `tests/templates.test.html` để kiểm tra cấu hình mẫu; mở `tests/grading.test.html` để kiểm tra căn chỉnh ảnh và tính điểm.
+
+## Codespaces
+
+`.devcontainer/devcontainer.json` yêu cầu Codespace 2 CPU, 8 GB RAM và 32 GB dung lượng. Thời gian chờ tự tắt 10–15 phút và hạn mức miễn phí theo tài khoản cần đặt/kiểm tra trong GitHub **Settings → Codespaces** và **Billing and licensing**.

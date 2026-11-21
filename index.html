@@ -4,7 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Chấm phiếu">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Tạo phiếu trả lời trắc nghiệm</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/app-icon.svg">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.js" defer></script>
@@ -23,6 +29,8 @@
           <span aria-hidden="true">↓</span> Tải PDF
         </button>
       </header>
+      <button id="install-app" class="secondary-button install-button" type="button" hidden>Cài đặt ứng dụng</button>
+      <p class="install-help">Android: cài từ Chrome. iPhone/iPad: mở bằng Safari, chọn <strong>Chia sẻ → Thêm vào màn hình chính</strong>.</p>
 
       <div class="workspace">
         <section class="panel settings-panel" aria-labelledby="settings-title">

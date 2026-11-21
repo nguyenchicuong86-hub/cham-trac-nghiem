@@ -146,6 +146,8 @@ input:hover, select:hover { border-color: #b6c4df; }
 .template-summary div { display: flex; justify-content: space-between; gap: 10px; color: #6f7d93; font-size: 11px; }
 .template-summary strong { color: #2a3851; font-size: 11px; text-align: right; }
 .privacy-note { margin: 16px 0 0; color: #72809a; font-size: 11px; line-height: 1.5; }
+.install-help { margin: -4px 0 14px; color: #61728f; font-size: 11px; line-height: 1.5; }
+.install-button { margin: 0 0 10px; }
 
 .grading-panel { margin-top: 22px; }
 .grading-panel > .panel-heading { margin-bottom: 12px; }

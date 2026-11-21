@@ -1,0 +1,50 @@
+{
+  "name": "cham-trac-nghiem",
+  "version": "1.0.0",
+  "private": true,
+  "main": "desktop/main.cjs",
+  "description": "Ứng dụng tạo và chấm phiếu trắc nghiệm",
+  "scripts": {
+    "build:web": "node scripts/copy-web-assets.mjs",
+    "dist:windows": "npm run build:web && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "@capacitor/android": "7.4.3",
+    "@capacitor/cli": "7.4.3",
+    "@capacitor/core": "7.4.3",
+    "electron": "37.2.6",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "vn.chamtracnghiem.app",
+    "productName": "Cham Trac Nghiem",
+    "directories": {
+      "output": "release/windows"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "www",
+        "to": "app"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Cham-Trac-Nghiem-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Chấm trắc nghiệm (2 cores)",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  }
+}

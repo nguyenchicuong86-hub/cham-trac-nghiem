@@ -1,0 +1,8 @@
+{
+  "appId": "vn.chamtracnghiem.app",
+  "appName": "Chấm trắc nghiệm",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

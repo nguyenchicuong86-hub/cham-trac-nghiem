@@ -18,6 +18,32 @@ const examCodeField = document.querySelector("#exam-code-field");
 const examFields = document.querySelector("#exam-fields");
 const sheetId = createSheetId();
 let activeTemplate = ANSWER_SHEET_TEMPLATE;
+let installPrompt;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  document.querySelector("#install-app").hidden = false;
+});
+document.querySelector("#install-app").addEventListener("click", async () => {
+  if (!installPrompt) return;
+  await installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = undefined;
+  document.querySelector("#install-app").hidden = true;
+});
+window.addEventListener("appinstalled", () => {
+  installPrompt = undefined;
+  document.querySelector("#install-app").hidden = true;
+});
+
+if ("serviceWorker" in navigator
+  && (location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname))) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .catch((error) => console.error("Không đăng ký được bộ nhớ đệm ứng dụng:", error));
+  }, { once: true });
+}
 
 document.querySelector("#sheet-id-label").textContent = sheetId;
 
